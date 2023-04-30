@@ -32,14 +32,23 @@ class Inferencer:
 
 
     def transcribe(self, wav) -> str:
-        input_values = self.processor(wav, sampling_rate=16000, return_tensors="pt").input_values
-        logits = self.model(input_values.to(self.device)).logits
+        # input_values = self.processor(wav, sampling_rate=16000, return_tensors="pt").input_values
+        # data/clips/Ind001_F_B_C_news_0000.wav
+        # tensor([[ 0.0066, -0.0033, -0.0022,  ..., -0.0011, -0.0011, -0.0055]]) --> attention_mask ga diambil
+
+        inputs = self.processor(wav, sampling_rate=16000, return_tensors="pt", padding=True)
+        # data/clips/Ind001_F_B_C_news_0000.wav
+        # {'input_values': tensor([[ 0.0066, -0.0033, -0.0022,  ..., -0.0011, -0.0011, -0.0055]]), 'attention_mask': tensor([[1, 1, 1,  ..., 1, 1, 1]], dtype=torch.int32)}
+        
+        with torch.no_grad():
+            #logits = self.model(input_values.to(self.device)).logits
+            logits = self.model(inputs.input_values.to(self.device),attention_mask=inputs.attention_mask.to(self.device)).logits
         pred_ids = torch.argmax(logits, dim=-1)
         pred_transcript = self.processor.batch_decode(pred_ids)[0]
         return pred_transcript
 
     def run(self, test_filepath):
-        filename = test_filepath.split('/')[-1].split('.')[0]
+        filename = test_filepath.split('/')[-1].split('.')[0] #[-1] indicate the last substring of the list
         filetype = test_filepath.split('.')[1]
         if filetype == 'txt':
             f = open(test_filepath, 'r')
@@ -48,17 +57,24 @@ class Inferencer:
 
             f = open(test_filepath.replace(filename, 'transcript_'+filename), 'w+')
             for line in tqdm(lines):
-                wav, _ = librosa.load(line, sr = 16000)
+                audio_path = line.split('\t')[0].strip()
+                path = "/".join(["data/clips",audio_path])
+                print(path)
+                # wav, _ = librosa.load(path, sr = 16000)
+                wav, _ = torchaudio.load(path)
+                wav = wav.squeeze().numpy()
+
                 transcript = self.transcribe(wav)
-                f.write(line + ' ' + transcript + '\n')
+                f.write(audio_path + ' ' + transcript + '\n')
             f.close()
+
 
         else:
             # single audio file
             wav, _ = librosa.load(test_filepath, sr = 16000)
 
             # hugging face code
-            speech_array, sampling_rate = torchaudio.load(test_filepath)
+            speech_array, sampling_rate = torchaudio.load(test_filepath) #works
             #resampler = torchaudio.transforms.Resample(sampling_rate, 16_000)
             speech = speech_array.squeeze().numpy()
 
