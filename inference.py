@@ -4,6 +4,7 @@ import os
 import argparse
 #huggingface code
 import torchaudio
+import evaluate
 
 from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC
 from tqdm import tqdm
@@ -61,8 +62,13 @@ class Inferencer:
             #resampler = torchaudio.transforms.Resample(sampling_rate, 16_000)
             speech = speech_array.squeeze().numpy()
 
-            print(f"transcript 1: {self.transcribe(wav)}")
-            print(f"transcript 2: {self.transcribe(speech)}")
+            #wer
+            wer = evaluate.load('wer')
+            print(f"wer: {wer.compute(references=[self.transcribe(speech)], predictions=['elsasharif mengaku'])}") #works
+
+
+            print(f"transcript 1: {self.transcribe(wav)}") #works
+            print(f"transcript 2: {self.transcribe(speech)}") #works
 
 
 if __name__ == '__main__':
