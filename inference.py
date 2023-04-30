@@ -2,6 +2,8 @@ import librosa
 import torch
 import os
 import argparse
+#huggingface code
+import torchaudio
 
 from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC
 from tqdm import tqdm
@@ -51,8 +53,16 @@ class Inferencer:
             f.close()
 
         else:
+            # single audio file
             wav, _ = librosa.load(test_filepath, sr = 16000)
-            print(f"transcript: {self.transcribe(wav)}")
+
+            # hugging face code
+            speech_array, sampling_rate = torchaudio.load(test_filepath)
+            #resampler = torchaudio.transforms.Resample(sampling_rate, 16_000)
+            speech = speech_array.squeeze().numpy()
+
+            print(f"transcript 1: {self.transcribe(wav)}")
+            print(f"transcript 2: {self.transcribe(speech)}")
 
 
 if __name__ == '__main__':
