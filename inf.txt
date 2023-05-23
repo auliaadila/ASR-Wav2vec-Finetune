@@ -1,0 +1,6 @@
+usage: inference.py [-h] -f TEST_FILEPATH [-s HUGGINGFACE_FOLDER] [-m MODEL_PATH] [-d DEVICE_ID]
+
+huggingface_folder: indonesian-nlp/wav2vec2-large-xlsr-indonesian
+
+
+inference.py -f data/Ind001_F_B_C_news_0000.wav -s indonesian-nlp/wav2vec2-large-xlsr-indonesian

@@ -6,12 +6,12 @@ import argparse
 from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC
 from tqdm import tqdm
 
-
 class Inferencer:
     def __init__(self, device, huggingface_folder, model_path) -> None:
         self.device = device
         self.processor = Wav2Vec2Processor.from_pretrained(huggingface_folder)
         self.model = Wav2Vec2ForCTC.from_pretrained(huggingface_folder).to(self.device)
+        # if model_path exist (not from huggingface)
         if model_path is not None:
             self.preload_model(model_path)
 
@@ -37,7 +37,11 @@ class Inferencer:
 
     def run(self, test_filepath):
         filename = test_filepath.split('/')[-1].split('.')[0]
+        print("FILENAME:",filename)
         filetype = test_filepath.split('.')[1]
+        print("FILETYPE:",filetype)
+
+        #filetype could be list of path (txt) or wav
         if filetype == 'txt':
             f = open(test_filepath, 'r')
             lines = f.read().splitlines()
